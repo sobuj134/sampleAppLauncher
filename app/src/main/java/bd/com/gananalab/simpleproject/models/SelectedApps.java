@@ -9,17 +9,7 @@ import io.realm.annotations.PrimaryKey;
 
 public class SelectedApps extends RealmObject {
     @PrimaryKey
-    private long id;
     private String pkName;
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
 
     public String getPkName() {
         return pkName;
@@ -33,7 +23,6 @@ public class SelectedApps extends RealmObject {
     @Override
     public String toString() {
         return "SelectedApps{" +
-                "id=" + id +
                 ", pkName='" + pkName + '\'' +
                 '}';
     }

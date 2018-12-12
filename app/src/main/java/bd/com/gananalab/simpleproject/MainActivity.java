@@ -54,52 +54,64 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         App.getComponent().inject(this);
         ButterKnife.bind(this);
-        fastAdapter = new FastItemAdapter<>();
-        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        packageInfos = getPackageManager().queryIntentActivities( mainIntent, 0);
-        setFastAdapter();
+
+        //setFastAdapter();
     }
 
     public void setFastAdapter(){
-        for(ResolveInfo packageInfo:packageInfos){
-            MainAppsModel mainAppsModel = new MainAppsModel();
-            mainAppsModel.setPkInfo(packageInfo);
-            mainAppsModel.setSelected(false);
-            mainAppsModelList.add(mainAppsModel);
-        }
-        fastAdapter.add(mainAppsModelList);
-        fastAdapter.setHasStableIds(false);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        rvApps.setLayoutManager(layoutManager);
-        rvApps.setAdapter(fastAdapter);
-
-        fastAdapter.withItemEvent(new ClickEventHook<MainAppsModel>() {
-
-            @Nullable
-            @Override
-            public View onBind(@NonNull RecyclerView.ViewHolder viewHolder) {
-                //return the views on which you want to bind this event
-                if (viewHolder instanceof MainAppsModel.ViewHolder) {
-                    return ((MainAppsModel.ViewHolder) viewHolder).swSelect;
-                }
-                return null;
-            }
-
-            @Override
-            public void onClick(View v, int position, FastAdapter<MainAppsModel> fastAdapter1, final MainAppsModel item) {
-                //react on the click event
-                if (item.isSelected()) {
-                    nextPkInfo.remove(item.getPkInfo());
-                    item.setSelected(false);
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        packageInfos = getPackageManager().queryIntentActivities( mainIntent, 0);
+        fastAdapter = new FastItemAdapter<>();
+        mainAppsModelList.clear();
+        nextPkInfo.clear();
+        if(packageInfos != null && packageInfos.size() > 0) {
+            for (ResolveInfo packageInfo : packageInfos) {
+                MainAppsModel mainAppsModel = new MainAppsModel();
+                mainAppsModel.setPkInfo(packageInfo);
+                SelectedApps selectedApp = r.where(SelectedApps.class).equalTo("pkName", packageInfo.activityInfo.packageName).findFirst();
+                if (selectedApp != null) {
+                    mainAppsModel.setSelected(true);
+                    nextPkInfo.add(packageInfo);
                 } else {
-                    nextPkInfo.add(item.getPkInfo());
-                    item.setSelected(true);
+                    mainAppsModel.setSelected(false);
                 }
-                fastAdapter1.notifyDataSetChanged();
-                Log.d(TAG, "onClick: Size(): "+ nextPkInfo.size());
+                mainAppsModelList.add(mainAppsModel);
             }
-        });
+            fastAdapter.add(mainAppsModelList);
+            fastAdapter.setHasStableIds(false);
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+            rvApps.setLayoutManager(layoutManager);
+            rvApps.setAdapter(fastAdapter);
+
+            fastAdapter.withItemEvent(new ClickEventHook<MainAppsModel>() {
+
+                @Nullable
+                @Override
+                public View onBind(@NonNull RecyclerView.ViewHolder viewHolder) {
+                    //return the views on which you want to bind this event
+                    if (viewHolder instanceof MainAppsModel.ViewHolder) {
+                        return ((MainAppsModel.ViewHolder) viewHolder).swSelect;
+                    }
+                    return null;
+                }
+
+                @Override
+                public void onClick(View v, int position, FastAdapter<MainAppsModel> fastAdapter1, final MainAppsModel item) {
+                    //react on the click event
+                    if (item.isSelected()) {
+                        nextPkInfo.remove(item.getPkInfo());
+                        item.setSelected(false);
+                    } else {
+                        nextPkInfo.add(item.getPkInfo());
+                        item.setSelected(true);
+                    }
+                    fastAdapter1.notifyDataSetChanged();
+                    Log.d(TAG, "onClick: Size(): " + nextPkInfo.size());
+                }
+            });
+
+        }
     }
     @OnClick(R.id.btnNext)
     public void clickNext(){
@@ -112,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
 
                     for (ResolveInfo pkInfo : nextPkInfo){
                         SelectedApps selectedApps = new SelectedApps();
-                        selectedApps.setId(System.currentTimeMillis());
                         selectedApps.setPkName(pkInfo.activityInfo.packageName);
                         r.insertOrUpdate(selectedApps);
                     }
@@ -125,5 +136,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void goToNextActivity(){
         SecondActivity.start(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setFastAdapter();
     }
 }
