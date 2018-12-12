@@ -13,6 +13,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
@@ -60,6 +61,7 @@ public class SecondActivity extends AppCompatActivity {
         setContentView(R.layout.activity_second);
         App.getComponent().inject(this);
         ButterKnife.bind(this);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         fastAdapter = new FastItemAdapter<>();
         List<SelectedApps> selectedApps = r.where(SelectedApps.class).findAll();
         if(selectedApps != null && selectedApps.size() > 0){
@@ -98,6 +100,17 @@ public class SecondActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == android.R.id.home) {
+            finish();
+
+        }
+        return true;
     }
 
 }

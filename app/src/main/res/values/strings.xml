@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SimpleProject</string>
+    <string name="app_list">App List</string>
+    <string name="launch_app">Selected Apps</string>
 </resources>
